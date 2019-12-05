@@ -120,9 +120,9 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
-int             changeQueueNum(void);
-int             evalTicket(void);
-int             evalRemainingPriority(void);
+int             changeQueueNum(int, int);
+int             evalTicket(int, int);
+int             evalRemainingPriority(int, char*);
 int             printInfo(void);
 
 // swtch.S

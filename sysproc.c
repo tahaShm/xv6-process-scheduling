@@ -96,19 +96,30 @@ sys_changeQueueNum(void)
   int pid, destinationQueue;
   argint(0,&pid);
   argint(1,&destinationQueue);  
-  cprintf("pid = %d des = %d\n",pid,destinationQueue);
-  return 0;
-  // return changeQueueNum(pid, destinationQueue); //change here
+  
+  cprintf("pid = %d des = %d\n", pid, destinationQueue);
+  return changeQueueNum(pid, destinationQueue);
 }
 int
 sys_evalTicket(void)
 {
-  return 0; //change here
+  int pid, ticket;
+  argint(0,&pid);
+  argint(1,&ticket);  
+  
+  cprintf("pid = %d des = %d\n", pid, ticket);
+  return evalTicket(pid, ticket);
 }
 int
 sys_evalRemainingPriority(void)
 {
-  return 0; //change here
+  int pid;
+  char *priority;
+  argint(0, &pid);
+  argstr(1, &priority);  
+
+  cprintf("pid = %d des = %s\n", pid, priority);
+  return evalRemainingPriority(pid, priority);
 }
 int
 sys_printInfo(void)

@@ -23,9 +23,9 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-int changeQueueNum(void);
-int evalTicket(void);
-int evalRemainingPriority(void);
+int changeQueueNum(int, int);
+int evalTicket(int, int);
+int evalRemainingPriority(int, char*);
 int printInfo(void);
 
 // ulib.c

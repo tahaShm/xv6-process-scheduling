@@ -534,23 +534,64 @@ procdump(void)
 }
 
 int
-changeQueueNum(void)
+changeQueueNum(int pid , int queue)
 {
-  return 22; //change here
+  struct proc *p;
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->pid == pid) {
+      p->queueNum = queue;
+      return 1;
+    }
+  }
+  return -1;
 }
 
 int
-evalTicket(void)
+evalTicket(int pid, int ticket)
 {
-  return 23; //change here
+  struct proc *p;
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->pid == pid) {
+      p->ticket = ticket;
+      return 1;
+    }
+  }
+  return -1;
+}
+
+float stof(char* s) {
+  float rez = 0, fact = 1;
+  if (*s == '-'){
+    s++;
+    fact = -1;
+  };
+  for (int point_seen = 0; *s; s++){
+    if (*s == '.'){
+      point_seen = 1; 
+      continue;
+    };
+    int d = *s - '0';
+    if (d >= 0 && d <= 9){
+      if (point_seen) fact /= 10.0f;
+      rez = rez * 10.0f + (float)d;
+    };
+  };
+  return rez * fact;
 }
 
 int
-evalRemainingPriority(void)
+evalRemainingPriority(int pid, char* priority)
 {
-  return 24; //change here
+  float pri = stof(priority);
+  struct proc *p;
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->pid == pid) {
+      p->remainingPriority = pri;
+      return 1;
+    }
+  }
+  return -1;
 }
-
 int
 printInfo(void)
 {
