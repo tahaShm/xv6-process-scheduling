@@ -7,6 +7,8 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define MAX_PROC_NUMBER 256
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -322,6 +324,67 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+
+int findRunnableProcLottery (struct proc * queue0[], int q0Index){
+  int ticketNums = 0;
+  if(q0Index == 0)
+    return -1;
+  for (int i = 0; i < q0Index; i++) {
+    ticketNums += queue0[i]->ticket;
+  }
+  acquire(&tickslock);
+  int randomNum = ticks % ticketNums;
+  release(&tickslock);
+  int i = 0;
+  cprintf("random num is : %d\n", randomNum);
+  while(randomNum > 0) {
+    randomNum -= queue0[i]->ticket;
+    i++;
+  }
+  if (i == 0)
+    return queue0[0]->pid;
+  return queue0[i-1]->pid;
+} 
+
+int findRunnableProcHRRN (struct proc * queue1[], int q1Index){
+  acquire(&tickslock);
+  int currTick = ticks;
+  release(&tickslock);
+  int maxIndex = -1;
+  float max = -100;
+  for (int i = 0; i < q1Index; i++){
+    float waitingTime = (currTick - queue1[i]->ticks) / 100;
+    float HRRN = waitingTime/(float)(queue1[i]->cycleNum);
+    if(HRRN > max){
+      max = HRRN;
+      maxIndex = i;
+    }
+  }
+  
+  if(q1Index == 0)
+    return -1;
+  else
+    return queue1[maxIndex]->pid; 
+}
+
+int findRunnableProcSRPF (struct proc * queue2[], int q2Index){
+  if(q2Index == 0)
+    return -1;
+  float min = queue2[0]->remainingPriority;
+  int minIndex = 0;
+  for (int i = 0; i < q2Index; i++) {
+    if (min > queue2[i]->remainingPriority) {
+      min = queue2[i]->remainingPriority;
+      minIndex = i;
+    }
+  }
+  if (queue2[minIndex]->remainingPriority - 0.1 > 0)
+    queue2[minIndex]->remainingPriority -= 0.1;
+  else 
+    queue2[minIndex]->remainingPriority = 0;
+  return queue2[minIndex]->pid;
+}
+
 void
 scheduler(void)
 {
@@ -329,32 +392,65 @@ scheduler(void)
   struct cpu *c = mycpu();
   c->proc = 0;
   
-  for(;;){
+  for(;;) {
     // Enable interrupts on this processor.
     sti();
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    // int currQueueTaskExits = 0, currQueue = 0;
+
+    struct proc *queue0[MAX_PROC_NUMBER], *queue1[MAX_PROC_NUMBER], *queue2[MAX_PROC_NUMBER];
+    int q0index = 0, q1index = 0, q2index = 0; 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      
       if(p->state != RUNNABLE)
         continue;
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
-    }
+      if(p->queueNum == 0){
+        queue0[q0index] = p;
+        q0index++;
+      }
+      else if(p->queueNum == 1){
+        queue1[q1index] = p;
+        q1index++;
+      }
+      else if(p->queueNum == 2){
+        queue2[q2index] = p;
+        q2index++;
+      }
+    }    
+    
     release(&ptable.lock);
 
+    int pid;
+    if ((pid = findRunnableProcLottery(queue0, q0index)) < 0) 
+      if ((pid = findRunnableProcHRRN(queue1, q1index)) < 0) 
+        if ((pid = findRunnableProcHRRN(queue2, q2index)) < 0)
+          continue;
+    cprintf("pid is : %d\n", pid);
+    acquire(&ptable.lock);
+    
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+      if (pid == p->pid)
+        break;
+    }
+    
+       
+    // Switch to chosen process.  It is the process's job
+    // to release ptable.lock and then reacquire it
+    // before jumping back to us.
+    c->proc = p;
+    switchuvm(p);
+    p->state = RUNNING;
+
+    swtch(&(c->scheduler), p->context);
+    switchkvm();
+
+    // Process is done running for now.
+    // It should have changed its p->state before coming back.
+    c->proc = 0;
+    release(&ptable.lock);
   }
 }
 
