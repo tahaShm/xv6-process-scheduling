@@ -532,3 +532,27 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+int
+changeQueueNum(int pid, int destinationQueue)
+{
+  return 22; //change here
+}
+
+int
+evalTicket(int pid, int newTicket)
+{
+  return 23; //change here
+}
+
+int
+evalRemainingPriority(int pid, float newPriority)
+{
+  return 24; //change here
+}
+
+int
+printInfo(void)
+{
+  return 25; //change here
+}

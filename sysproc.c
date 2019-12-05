@@ -89,3 +89,24 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int
+sys_changeQueueNum(int pid, int destinationQueue)
+{
+  return changeQueueNum(pid, destinationQueue); //change here
+}
+int
+sys_evalTicket(int pid, int newTicket)
+{
+  return evalTicket(pid, newTicket); //change here
+}
+int
+sys_evalRemainingPriority(int pid, float newPriority)
+{
+  return evalRemainingPriority(pid, newPriority); //change here
+}
+int
+sys_printInfo(void)
+{
+  return printInfo(); //change here
+}

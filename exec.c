@@ -18,6 +18,7 @@ exec(char *path, char **argv)
   struct proghdr ph;
   pde_t *pgdir, *oldpgdir;
   struct proc *curproc = myproc();
+  struct rtcdate *time = 0;
 
   begin_op();
 
@@ -99,6 +100,13 @@ exec(char *path, char **argv)
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
+  cmostime(time);
+  curproc->entryTime = time;
+  curproc->queueNum = 0;
+  curproc->cycleNum = 1;
+  curproc->ticket = 10;
+  curproc->remainingPriority = 10;
+
   switchuvm(curproc);
   freevm(oldpgdir);
   return 0;
