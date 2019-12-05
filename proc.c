@@ -88,7 +88,10 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-
+  p->ticket = 10;
+  p->ticks = ticks;
+  p->queueNum = 0;
+  p->cycleNum = 1;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -592,8 +595,120 @@ evalRemainingPriority(int pid, char* priority)
   }
   return -1;
 }
+
+void reverse(char* str, int len) {
+  char temp;
+  for (int i = 0; i < len / 2; i++) {
+    temp = str[i];
+    str[i] = str[len - i - 1];
+    str[len - i - 1] = temp;
+  }
+}
+
+char* itoa(int num, char* str) { 
+    int i = 0; 
+    int isNegative = 0; 
+  
+    if (num == 0) { 
+        str[i++] = '0'; 
+        str[i] = '\0'; 
+        return str; 
+    } 
+  
+    if (num < 0 && 10 == 10) { 
+        isNegative = 1; 
+        num = -num; 
+    } 
+
+    while (num != 0) { 
+        int rem = num % 10; 
+        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
+        num = num/10; 
+    } 
+  
+    
+    if (isNegative) 
+        str[i++] = '-'; 
+  
+    str[i] = '\0'; 
+    reverse(str, i); 
+  
+    return str; 
+} 
+
+  
+char * ftos(float f, char* str){
+ 	int count;
+ 	char* curr;
+ 	int value;
+ 	value = (int)f;
+ 	itoa(value,str);
+ 	count = 0;
+ 	curr = str;
+ 	while(*curr != 0){
+ 		++count;
+ 		++curr;
+ 	}
+ 
+ 	if(count + 1 >= MAXFLOATLEN){
+ 		str[MAXFLOATLEN - 1] = 0;
+ 		return str;	
+ 	}
+ 	
+ 	str[count++] = '.';
+ 	++curr;
+ 	f = f - (float)value;
+ 	
+ 	while(count + 1 < MAXFLOATLEN){
+ 		f *= 10;
+ 		++count;	
+ 	}
+ 	
+ 	value = (int)f;
+ 	itoa(value,curr);
+ 	str[MAXFLOATLEN - 1] = 0;
+ 	return str;
+}
+
+char* generateHRRN(struct proc *p, char* out) {
+  float hrrnTime;
+  float waitingTime;
+  waitingTime = (ticks - p->ticks) / 100;
+  hrrnTime = (float)waitingTime / (float)p->cycleNum;
+  ftos(hrrnTime, out);
+  return out;
+}
+
+
 int
 printInfo(void)
 {
-  return 25; //change here
+  char str[MAXFLOATLEN];
+  char out[6];
+  struct proc *p;
+  sti();
+  acquire(&ptable.lock);
+  cprintf("name    pid    state    queueNum    priority    tickets    cycles    HRRN \n");
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+  //   if (p->state == RUNNING) {
+  //     cprintf("ticket is %d\n", p->ticket);
+  //   }
+    if (p->state == EMBRYO){
+      cprintf("%s     %d     EMBRYO     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+    }
+    if (p->state == SLEEPING){
+      cprintf("%s     %d     SLEEPING     %d     %s     %d        %d             %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+    }
+    if (p->state == RUNNABLE){
+      cprintf("%s     %d     RUNNABLE     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+    }
+    if (p->state == RUNNING){
+      cprintf("%s     %d     RUNNING     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+    }
+    if (p->state == ZOMBIE){
+      cprintf("%s     %d     ZOMBIE     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+    }
+  }
+  release(&ptable.lock);
+  return 1;
 }

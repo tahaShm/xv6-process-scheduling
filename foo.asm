@@ -15,23 +15,30 @@ int main (int argc, char* argv[]) {
    7:	ff 71 fc             	pushl  -0x4(%ecx)
    a:	55                   	push   %ebp
    b:	89 e5                	mov    %esp,%ebp
-   d:	53                   	push   %ebx
-   e:	51                   	push   %ecx
-   f:	8b 41 04             	mov    0x4(%ecx),%eax
+   d:	51                   	push   %ecx
+   e:	83 ec 04             	sub    $0x4,%esp
     
     // changeQueueNum(atoi(argv[1]), atoi(argv[2]));
-    evalRemainingPriority(atoi(argv[1]), argv[2]);
-  12:	83 ec 0c             	sub    $0xc,%esp
-  15:	8b 58 08             	mov    0x8(%eax),%ebx
-  18:	ff 70 04             	pushl  0x4(%eax)
-  1b:	e8 f0 01 00 00       	call   210 <atoi>
-  20:	5a                   	pop    %edx
-  21:	59                   	pop    %ecx
-  22:	53                   	push   %ebx
-  23:	50                   	push   %eax
-  24:	e8 09 03 00 00       	call   332 <evalRemainingPriority>
+    // evalRemainingPriority(atoi(argv[1]), argv[2]);
+    int pid = fork();
+  11:	e8 64 02 00 00       	call   27a <fork>
+    if (pid > 0) {
+  16:	85 c0                	test   %eax,%eax
+  18:	7f 06                	jg     20 <main+0x20>
+  1a:	eb fe                	jmp    1a <main+0x1a>
+  1c:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
+            ;
+        }
+        
+    }
+    
+    printInfo();
+  20:	e8 15 03 00 00       	call   33a <printInfo>
+
     exit();
-  29:	e8 54 02 00 00       	call   282 <exit>
+  25:	e8 58 02 00 00       	call   282 <exit>
+  2a:	66 90                	xchg   %ax,%ax
+  2c:	66 90                	xchg   %ax,%ax
   2e:	66 90                	xchg   %ax,%ax
 
 00000030 <strcpy>:
@@ -944,7 +951,7 @@ free(void *ap)
 
   bp = (Header*)ap - 1;
   for(p = freep; !(bp > p && bp < p->s.ptr); p = p->s.ptr)
- 5c1:	a1 f8 09 00 00       	mov    0x9f8,%eax
+ 5c1:	a1 f4 09 00 00       	mov    0x9f4,%eax
 {
  5c6:	89 e5                	mov    %esp,%ebp
  5c8:	57                   	push   %edi
@@ -985,7 +992,7 @@ free(void *ap)
     p->s.ptr = bp;
  5fd:	89 08                	mov    %ecx,(%eax)
   freep = p;
- 5ff:	a3 f8 09 00 00       	mov    %eax,0x9f8
+ 5ff:	a3 f4 09 00 00       	mov    %eax,0x9f4
 }
  604:	5b                   	pop    %ebx
  605:	5e                   	pop    %esi
@@ -1017,7 +1024,7 @@ free(void *ap)
     p->s.size += bp->s.size;
  637:	03 53 fc             	add    -0x4(%ebx),%edx
   freep = p;
- 63a:	a3 f8 09 00 00       	mov    %eax,0x9f8
+ 63a:	a3 f4 09 00 00       	mov    %eax,0x9f4
     p->s.size += bp->s.size;
  63f:	89 50 04             	mov    %edx,0x4(%eax)
     p->s.ptr = bp->s.ptr;
@@ -1050,7 +1057,7 @@ malloc(uint nbytes)
   nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
  659:	8b 45 08             	mov    0x8(%ebp),%eax
   if((prevp = freep) == 0){
- 65c:	8b 15 f8 09 00 00    	mov    0x9f8,%edx
+ 65c:	8b 15 f4 09 00 00    	mov    0x9f4,%edx
   nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
  662:	8d 78 07             	lea    0x7(%eax),%edi
  665:	c1 ef 03             	shr    $0x3,%edi
@@ -1087,7 +1094,7 @@ malloc(uint nbytes)
       return (void*)(p + 1);
     }
     if(p == freep)
- 6a1:	39 05 f8 09 00 00    	cmp    %eax,0x9f8
+ 6a1:	39 05 f4 09 00 00    	cmp    %eax,0x9f4
  6a7:	89 c2                	mov    %eax,%edx
  6a9:	75 ed                	jne    698 <malloc+0x48>
   p = sbrk(nu * sizeof(Header));
@@ -1106,7 +1113,7 @@ malloc(uint nbytes)
  6c5:	50                   	push   %eax
  6c6:	e8 f5 fe ff ff       	call   5c0 <free>
   return freep;
- 6cb:	8b 15 f8 09 00 00    	mov    0x9f8,%edx
+ 6cb:	8b 15 f4 09 00 00    	mov    0x9f4,%edx
       if((p = morecore(nunits)) == 0)
  6d1:	83 c4 10             	add    $0x10,%esp
  6d4:	85 d2                	test   %edx,%edx
@@ -1135,7 +1142,7 @@ malloc(uint nbytes)
         p->s.size = nunits;
  6f4:	89 78 04             	mov    %edi,0x4(%eax)
       freep = prevp;
- 6f7:	89 15 f8 09 00 00    	mov    %edx,0x9f8
+ 6f7:	89 15 f4 09 00 00    	mov    %edx,0x9f4
 }
  6fd:	8d 65 f4             	lea    -0xc(%ebp),%esp
       return (void*)(p + 1);
@@ -1149,13 +1156,13 @@ malloc(uint nbytes)
  708:	90                   	nop
  709:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
     base.s.ptr = freep = prevp = &base;
- 710:	c7 05 f8 09 00 00 fc 	movl   $0x9fc,0x9f8
+ 710:	c7 05 f4 09 00 00 f8 	movl   $0x9f8,0x9f4
  717:	09 00 00 
- 71a:	c7 05 fc 09 00 00 fc 	movl   $0x9fc,0x9fc
+ 71a:	c7 05 f8 09 00 00 f8 	movl   $0x9f8,0x9f8
  721:	09 00 00 
     base.s.size = 0;
- 724:	b8 fc 09 00 00       	mov    $0x9fc,%eax
- 729:	c7 05 00 0a 00 00 00 	movl   $0x0,0xa00
+ 724:	b8 f8 09 00 00       	mov    $0x9f8,%eax
+ 729:	c7 05 fc 09 00 00 00 	movl   $0x0,0x9fc
  730:	00 00 00 
  733:	e9 44 ff ff ff       	jmp    67c <malloc+0x2c>
  738:	90                   	nop

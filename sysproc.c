@@ -124,5 +124,5 @@ sys_evalRemainingPriority(void)
 int
 sys_printInfo(void)
 {
-  return 0; //change here
+  return printInfo();
 }

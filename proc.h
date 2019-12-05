@@ -52,7 +52,7 @@ struct proc {
   int ticket;                  // Number of tickets for scheduling
   int queueNum;                // Queue number between 0 to 2
   int cycleNum;                // Number of cycles process has run
-  struct rtcdate *entryTime;   // Time process entered
+  int ticks;   // Time process entered
   float remainingPriority;     // Priority of third queue
 };
 
