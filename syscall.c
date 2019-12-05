@@ -103,9 +103,9 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
-extern int sys_changeQueueNum(int pid, int destinationQueue);
-extern int sys_evalTicket(int pid, int newTicket);
-extern int sys_evalRemainingPriority(int pid, float newPriority);
+extern int sys_changeQueueNum(void);
+extern int sys_evalTicket(void);
+extern int sys_evalRemainingPriority(void);
 extern int sys_printInfo(void);
 
 static int (*syscalls[])(void) = {
@@ -130,6 +130,10 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_changeQueueNum] sys_changeQueueNum,
+[SYS_evalTicket] sys_evalTicket,
+[SYS_evalRemainingPriority] sys_evalRemainingPriority,
+[SYS_printInfo] sys_printInfo,
 };
 
 void

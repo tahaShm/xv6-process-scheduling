@@ -534,19 +534,19 @@ procdump(void)
 }
 
 int
-changeQueueNum(int pid, int destinationQueue)
+changeQueueNum(void)
 {
   return 22; //change here
 }
 
 int
-evalTicket(int pid, int newTicket)
+evalTicket(void)
 {
   return 23; //change here
 }
 
 int
-evalRemainingPriority(int pid, float newPriority)
+evalRemainingPriority(void)
 {
   return 24; //change here
 }

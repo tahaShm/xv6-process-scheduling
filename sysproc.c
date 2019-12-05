@@ -91,22 +91,27 @@ sys_uptime(void)
 }
 
 int
-sys_changeQueueNum(int pid, int destinationQueue)
+sys_changeQueueNum(void)
 {
-  return changeQueueNum(pid, destinationQueue); //change here
+  int pid, destinationQueue;
+  argint(0,&pid);
+  argint(1,&destinationQueue);  
+  cprintf("pid = %d des = %d\n",pid,destinationQueue);
+  return 0;
+  // return changeQueueNum(pid, destinationQueue); //change here
 }
 int
-sys_evalTicket(int pid, int newTicket)
+sys_evalTicket(void)
 {
-  return evalTicket(pid, newTicket); //change here
+  return 0; //change here
 }
 int
-sys_evalRemainingPriority(int pid, float newPriority)
+sys_evalRemainingPriority(void)
 {
-  return evalRemainingPriority(pid, newPriority); //change here
+  return 0; //change here
 }
 int
 sys_printInfo(void)
 {
-  return printInfo(); //change here
+  return 0; //change here
 }

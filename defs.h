@@ -120,10 +120,10 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
-int            changeQueueNum(int pid, int destinationQueue);
-int            evalTicket(int pid, int newTicket);
-int            evalRemainingPriority(int pid, float newPriority);
-int            printInfo(void);
+int             changeQueueNum(void);
+int             evalTicket(void);
+int             evalRemainingPriority(void);
+int             printInfo(void);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
