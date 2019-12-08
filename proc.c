@@ -782,25 +782,28 @@ char* generateHRRN(struct proc *p, char* out) {
 
 
 int printInfo(void) {
-  char str[MAXFLOATLEN];
   char out[6];
   struct proc *p;
   sti();
   acquire(&ptable.lock);
-  cprintf("name    pid    state    queueNum    priority    tickets    cycles    HRRN \n");
+  cprintf("---------------------------------------------------------------------");
+  cprintf("---------------------------------------------------------------------\n");
+  cprintf("name\t\tpid\t\tstate\t\tqueueNum\tpriority\ttickets\t\tcycles\t\tHRRN\t\ttimeCreated\n");
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    char str[MAXFLOATLEN];
     if (p->state == EMBRYO)
-      cprintf("%s\t%d\tEMBRYO\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t\t%d\t\tEMBRYO\t%d\t\t%s\t\t%d\t\t%d\t\t%s\t\t%d\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out), p->ticks);
     if (p->state == SLEEPING)
-      cprintf("%s\t%d\tSLEEPING\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t\t%d\t\tSLEEPING\t%d\t\t%s\t\t%d\t\t%d\t\t%s\t\t%d\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out), p->ticks);
     if (p->state == RUNNABLE)
-      cprintf("%s\t%d\tRUNNABLE\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t\t%d\t\tRUNNABLE\t%d\t\t%s\t\t%d\t\t%d\t\t%s\t\t%d\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out), p->ticks);
     if (p->state == RUNNING)
-      cprintf("%s\t%d\tRUNNING\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t\t%d\t\tRUNNING\t\t%d\t\t%s\t\t%d\t\t%d\t\t%s\t\t%d\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out), p->ticks);
     if (p->state == ZOMBIE)
-      cprintf("%s\t%d\tZOMBIE\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t\t%d\t\tZOMBIE\t%d\t\t%s\t\t%d\t\t%d\t\t%s\t\t%d\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out), p->ticks);
   }
-  cprintf("-------------------------------------------------------------------------------\n");
+  cprintf("---------------------------------------------------------------------");
+  cprintf("---------------------------------------------------------------------\n");
   release(&ptable.lock);
   return 1;
 }
