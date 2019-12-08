@@ -19,8 +19,6 @@
 00000000 umalloc.c
 00000dcc freep
 00000dd0 base
-00000000 
-00000dbc _GLOBAL_OFFSET_TABLE_
 00000330 strcpy
 00000060 fmtname
 000006f0 printf

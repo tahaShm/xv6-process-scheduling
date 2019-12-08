@@ -94,6 +94,7 @@ found:
   p->ticks = ticks;
   p->queueNum = 0;
   p->cycleNum = 1;
+  p->remainingPriority = 10;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -325,6 +326,80 @@ wait(void)
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 
+void reverse(char* str, int len) {
+  char temp;
+  for (int i = 0; i < len / 2; i++) {
+    temp = str[i];
+    str[i] = str[len - i - 1];
+    str[len - i - 1] = temp;
+  }
+}
+
+char* itoa(int num, char* str) { 
+    int i = 0; 
+    int isNegative = 0; 
+  
+    if (num == 0) { 
+        str[i++] = '0'; 
+        str[i] = '\0'; 
+        return str; 
+    } 
+  
+    if (num < 0 && 10 == 10) { 
+        isNegative = 1; 
+        num = -num; 
+    } 
+
+    while (num != 0) { 
+        int rem = num % 10; 
+        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
+        num = num/10; 
+    } 
+  
+    
+    if (isNegative) 
+        str[i++] = '-'; 
+  
+    str[i] = '\0'; 
+    reverse(str, i); 
+  
+    return str; 
+} 
+
+  
+char* ftos(float f, char* str) {
+ 	int count;
+ 	char* curr;
+ 	int value;
+ 	value = (int)f;
+ 	itoa(value,str);
+ 	count = 0;
+ 	curr = str;
+ 	while(*curr != 0){
+ 		++count;
+ 		++curr;
+ 	}
+ 
+ 	if(count + 1 >= MAXFLOATLEN) {
+ 		str[MAXFLOATLEN - 1] = 0;
+ 		return str;	
+ 	}
+ 	
+ 	str[count++] = '.';
+ 	++curr;
+ 	f = f - (float)value;
+ 	
+ 	while(count + 1 < MAXFLOATLEN) {
+ 		f *= 10;
+ 		++count;	
+ 	}
+ 	
+ 	value = (int)f;
+ 	itoa(value,curr);
+ 	str[MAXFLOATLEN - 1] = 0;
+ 	return str;
+}
+
 int findRunnableProcLottery (struct proc * queue0[], int q0Index){
   int ticketNums = 0;
   if(q0Index == 0)
@@ -336,7 +411,7 @@ int findRunnableProcLottery (struct proc * queue0[], int q0Index){
   int randomNum = ticks % ticketNums;
   release(&tickslock);
   int i = 0;
-  cprintf("random num is : %d\n", randomNum);
+  // cprintf("random num is : %d\n", randomNum);
   while(randomNum > 0) {
     randomNum -= queue0[i]->ticket;
     i++;
@@ -354,8 +429,11 @@ int findRunnableProcHRRN (struct proc * queue1[], int q1Index){
   float max = -100;
   for (int i = 0; i < q1Index; i++){
     float waitingTime = (currTick - queue1[i]->ticks) / 100;
+    char a[MAXFLOATLEN];
     float HRRN = waitingTime/(float)(queue1[i]->cycleNum);
-    if(HRRN > max){
+    ftos(HRRN, a);
+    // cprintf("HRRN time is : %s!!!!!!!!!!!!\n", a);
+    if(HRRN > max) {
       max = HRRN;
       maxIndex = i;
     }
@@ -419,6 +497,7 @@ scheduler(void)
         queue2[q2index] = p;
         q2index++;
       }
+      // cprintf("q0index : %d, q1index: %d, q2index: %d \n", q0index, q1index, q2index);
     }    
     
     release(&ptable.lock);
@@ -428,14 +507,17 @@ scheduler(void)
       if ((pid = findRunnableProcHRRN(queue1, q1index)) < 0) 
         if ((pid = findRunnableProcHRRN(queue2, q2index)) < 0)
           continue;
-    cprintf("pid is : %d\n", pid);
+    // cprintf("pid is : %d\n", pid);
     acquire(&ptable.lock);
     
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
       if (pid == p->pid)
         break;
     }
+
+    p->cycleNum ++;
     
+    // cprintf("queue is : %d\n", p->queueNum);
        
     // Switch to chosen process.  It is the process's job
     // to release ptable.lock and then reacquire it
@@ -615,7 +697,7 @@ procdump(void)
   char *state;
   uint pc[10];
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if(p->state == UNUSED)
       continue;
     if(p->state >= 0 && p->state < NELEM(states) && states[p->state])
@@ -633,8 +715,7 @@ procdump(void)
 }
 
 int
-changeQueueNum(int pid , int queue)
-{
+changeQueueNum(int pid , int queue) {
   struct proc *p;
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if (p->pid == pid) {
@@ -645,9 +726,7 @@ changeQueueNum(int pid , int queue)
   return -1;
 }
 
-int
-evalTicket(int pid, int ticket)
-{
+int evalTicket(int pid, int ticket) {
   struct proc *p;
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if (p->pid == pid) {
@@ -678,9 +757,7 @@ float stof(char* s) {
   return rez * fact;
 }
 
-int
-evalRemainingPriority(int pid, char* priority)
-{
+int evalRemainingPriority(int pid, char* priority) {
   float pri = stof(priority);
   struct proc *p;
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
@@ -690,80 +767,6 @@ evalRemainingPriority(int pid, char* priority)
     }
   }
   return -1;
-}
-
-void reverse(char* str, int len) {
-  char temp;
-  for (int i = 0; i < len / 2; i++) {
-    temp = str[i];
-    str[i] = str[len - i - 1];
-    str[len - i - 1] = temp;
-  }
-}
-
-char* itoa(int num, char* str) { 
-    int i = 0; 
-    int isNegative = 0; 
-  
-    if (num == 0) { 
-        str[i++] = '0'; 
-        str[i] = '\0'; 
-        return str; 
-    } 
-  
-    if (num < 0 && 10 == 10) { 
-        isNegative = 1; 
-        num = -num; 
-    } 
-
-    while (num != 0) { 
-        int rem = num % 10; 
-        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
-        num = num/10; 
-    } 
-  
-    
-    if (isNegative) 
-        str[i++] = '-'; 
-  
-    str[i] = '\0'; 
-    reverse(str, i); 
-  
-    return str; 
-} 
-
-  
-char * ftos(float f, char* str){
- 	int count;
- 	char* curr;
- 	int value;
- 	value = (int)f;
- 	itoa(value,str);
- 	count = 0;
- 	curr = str;
- 	while(*curr != 0){
- 		++count;
- 		++curr;
- 	}
- 
- 	if(count + 1 >= MAXFLOATLEN){
- 		str[MAXFLOATLEN - 1] = 0;
- 		return str;	
- 	}
- 	
- 	str[count++] = '.';
- 	++curr;
- 	f = f - (float)value;
- 	
- 	while(count + 1 < MAXFLOATLEN){
- 		f *= 10;
- 		++count;	
- 	}
- 	
- 	value = (int)f;
- 	itoa(value,curr);
- 	str[MAXFLOATLEN - 1] = 0;
- 	return str;
 }
 
 char* generateHRRN(struct proc *p, char* out) {
@@ -776,9 +779,7 @@ char* generateHRRN(struct proc *p, char* out) {
 }
 
 
-int
-printInfo(void)
-{
+int printInfo(void) {
   char str[MAXFLOATLEN];
   char out[6];
   struct proc *p;
@@ -786,25 +787,18 @@ printInfo(void)
   acquire(&ptable.lock);
   cprintf("name    pid    state    queueNum    priority    tickets    cycles    HRRN \n");
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-  //   if (p->state == RUNNING) {
-  //     cprintf("ticket is %d\n", p->ticket);
-  //   }
-    if (p->state == EMBRYO){
+    if (p->state == EMBRYO)
       cprintf("%s     %d     EMBRYO     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
-    }
-    if (p->state == SLEEPING){
+    if (p->state == SLEEPING)
       cprintf("%s     %d     SLEEPING     %d     %s     %d        %d             %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
-    }
-    if (p->state == RUNNABLE){
+    if (p->state == RUNNABLE)
       cprintf("%s     %d     RUNNABLE     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
-    }
-    if (p->state == RUNNING){
+    if (p->state == RUNNING)
       cprintf("%s     %d     RUNNING     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
-    }
-    if (p->state == ZOMBIE){
+    if (p->state == ZOMBIE)
       cprintf("%s     %d     ZOMBIE     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
-    }
   }
+  cprintf("-------------------------------------------------------------------------------\n");
   release(&ptable.lock);
   return 1;
 }

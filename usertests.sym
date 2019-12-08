@@ -20,8 +20,6 @@
 00000000 umalloc.c
 00005ec0 freep
 00005ec4 base
-00000000 
-00005e14 _GLOBAL_OFFSET_TABLE_
 00003650 strcpy
 00000cf0 exitwait
 00003a10 printf

@@ -97,7 +97,7 @@ sys_changeQueueNum(void)
   argint(0,&pid);
   argint(1,&destinationQueue);  
   
-  cprintf("pid = %d des = %d\n", pid, destinationQueue);
+  // cprintf("pid = %d des = %d\n", pid, destinationQueue);
   return changeQueueNum(pid, destinationQueue);
 }
 int

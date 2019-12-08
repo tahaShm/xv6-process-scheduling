@@ -103,6 +103,7 @@ exec(char *path, char **argv)
   curproc->cycleNum = 1;
   curproc->ticket = 100000;
   curproc->remainingPriority = 10;
+  curproc->ticks = ticks;
 
   switchuvm(curproc);
   freevm(oldpgdir);

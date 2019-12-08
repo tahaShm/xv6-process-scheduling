@@ -18,8 +18,6 @@
 00000000 umalloc.c
 00000e20 freep
 00000e24 base
-00000000 
-00000e20 _GLOBAL_OFFSET_TABLE_
 00000330 strcpy
 000006f0 printf
 0000062a evalTicket
