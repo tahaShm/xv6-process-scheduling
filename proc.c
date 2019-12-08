@@ -408,7 +408,7 @@ int findRunnableProcLottery (struct proc * queue0[], int q0Index){
     ticketNums += queue0[i]->ticket;
   }
   acquire(&tickslock);
-  int randomNum = ticks % ticketNums;
+  int randomNum = (ticks * ticks) % ticketNums;
   release(&tickslock);
   int i = 0;
   // cprintf("random num is : %d\n", randomNum);
@@ -426,12 +426,14 @@ int findRunnableProcHRRN (struct proc * queue1[], int q1Index){
   int currTick = ticks;
   release(&tickslock);
   int maxIndex = -1;
-  float max = -100;
+  float max = -1;
   for (int i = 0; i < q1Index; i++){
-    float waitingTime = (currTick - queue1[i]->ticks) / 100;
-    char a[MAXFLOATLEN];
+    // char a[MAXFLOATLEN], b[MAXFLOATLEN];
+    float waitingTime = (float)(currTick - queue1[i]->ticks);
+    // ftos(waitingTime, b);
+    // cprintf("Waiting time is : %d!!!!!!!!!!!!\n", currTick - queue1[i]->ticks);
     float HRRN = waitingTime/(float)(queue1[i]->cycleNum);
-    ftos(HRRN, a);
+    // ftos(HRRN, a);
     // cprintf("HRRN time is : %s!!!!!!!!!!!!\n", a);
     if(HRRN > max) {
       max = HRRN;
@@ -505,7 +507,7 @@ scheduler(void)
     int pid;
     if ((pid = findRunnableProcLottery(queue0, q0index)) < 0) 
       if ((pid = findRunnableProcHRRN(queue1, q1index)) < 0) 
-        if ((pid = findRunnableProcHRRN(queue2, q2index)) < 0)
+        if ((pid = findRunnableProcSRPF(queue2, q2index)) < 0)
           continue;
     // cprintf("pid is : %d\n", pid);
     acquire(&ptable.lock);
@@ -788,15 +790,15 @@ int printInfo(void) {
   cprintf("name    pid    state    queueNum    priority    tickets    cycles    HRRN \n");
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if (p->state == EMBRYO)
-      cprintf("%s     %d     EMBRYO     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t%d\tEMBRYO\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
     if (p->state == SLEEPING)
-      cprintf("%s     %d     SLEEPING     %d     %s     %d        %d             %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t%d\tSLEEPING\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
     if (p->state == RUNNABLE)
-      cprintf("%s     %d     RUNNABLE     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t%d\tRUNNABLE\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
     if (p->state == RUNNING)
-      cprintf("%s     %d     RUNNING     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t%d\tRUNNING\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
     if (p->state == ZOMBIE)
-      cprintf("%s     %d     ZOMBIE     %d     %s     %d        %d            %s \n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
+      cprintf("%s\t%d\tZOMBIE\t%d\t%s\t%d\t%d\t%s\n", p->name, p->pid, p->queueNum, ftos(p->remainingPriority, str), p->ticket, p->cycleNum, generateHRRN(p, out));
   }
   cprintf("-------------------------------------------------------------------------------\n");
   release(&ptable.lock);

@@ -107,7 +107,7 @@ sys_evalTicket(void)
   argint(0,&pid);
   argint(1,&ticket);  
   
-  cprintf("pid = %d des = %d\n", pid, ticket);
+  // cprintf("pid = %d des = %d\n", pid, ticket);
   return evalTicket(pid, ticket);
 }
 int
@@ -118,7 +118,7 @@ sys_evalRemainingPriority(void)
   argint(0, &pid);
   argstr(1, &priority);  
 
-  cprintf("pid = %d des = %s\n", pid, priority);
+  // cprintf("pid = %d des = %s\n", pid, priority);
   return evalRemainingPriority(pid, priority);
 }
 int

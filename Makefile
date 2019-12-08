@@ -182,6 +182,10 @@ UPROGS=\
 	_wc\
 	_foo\
 	_zombie\
+	_info\
+	_changeQueue\
+	_changeTicket\
+	_changePriority\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
